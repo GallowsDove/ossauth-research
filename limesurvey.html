@@ -1,0 +1,62 @@
+<script type="text/javascript" charset="utf-8">
+  function show_message(message, color) {
+    const msg_elem = $("#error-message");
+    msg_elem.css("display", "block");
+    msg_elem.text(message);
+    msg_elem.css("color", color);
+  }
+
+  async function fetchRepo(repo) {
+    try {
+      const repository = await fetch('https://euandros.fi.muni.cz:8080/' + repo);
+      if (repository.status == 404) {
+        show_message("Repository not found. Please check repository name, including upper/lowercase letters.", "red");
+        return undefined;
+      }
+      if (repository.status == 500) {
+		show_message("Sorry, it appears that the server encountered an unexpected error.", "red");
+        return undefined;
+      }
+      return await repository.json();
+    } catch (e) {
+      show_message("Error encountered while fetching repository.", "red");
+      console.log(e);
+      return undefined;
+    }
+  }
+
+  const button = String.raw`<br> <div class="bootstrap-buttons-div col-xs-12 col-sm-2" id="loadprojectsdiv"> <div class="button-item btn btn-primary   col-xs-12 col-sm-12"><span class="checkbox-label control-label">Load Repository Stats</span></div> </div> <br>`
+  const error = String.raw`<div id="error-message">Click this button to automatically fill in project information.</div>`
+
+  function onClick() {
+    const repo = document.getElementById("answer211751X422X11706").value
+    const regex = /^[A-Za-z0-9._-]+\/[A-Za-z0-9._-]+$/
+    if (!regex.exec(repo)) {
+	  show_message("Please make sure that the project is in the supported format.", "red")
+      return;
+    }
+    show_message("Fetching repository information, please wait.", "black")
+    fetchRepo(repo).then((result) => {
+      if (result == undefined) {
+        return;
+      }
+      document.getElementById("answer211751X422X12075").value = result['stargazers_count'];
+      document.getElementById("answer211751X422X12076").value = result['forks_count'];
+      document.getElementById("answer211751X422X12077").value = result['subscribers_count'];
+      document.getElementById("answer211751X422X12078").value = result['contributors_anon_count'];
+      document.getElementById("answer211751X422X12255").value = result['contributors_count'];
+      document.getElementById("answer211751X422X12079").value = result['commits_count'];
+      document.getElementById("answer211751X422X12080").value = result['first_commit'];
+      document.getElementById("answer211751X422X12081").value = result['pull_requests_count'];
+      document.getElementById("answer211751X422X12082").value = result['pull_requests_open_count'];
+      document.getElementById("answer211751X422X12083").value = JSON.stringify(result['languages'], null, 2);
+      show_message("Repository successfully fetched.", "black")
+    } );
+  }
+  $(document).ready(async function() {
+    document.getElementById('answer211751X422X11706').insertAdjacentHTML('afterend', button);
+    document.getElementById('loadprojectsdiv').insertAdjacentHTML('afterend', error);
+    $('#loadprojectsdiv').on("click", onClick);
+  } );
+
+</script>
